@@ -1,5 +1,5 @@
 // Ganti dengan URL Google Apps Script dari Langkah 2
-const API_URL = "https://script.google.com/macros/s/AKfycbx7pW3dvS0T_UjCPf59DUgYHvsaa7r-4DxeK3trSBOep_ZRA-kPO7OzY6Z2OmwcSjAr/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbyp3pLdEGZILTvsE2AQBVuuKlTR3w1Q_dzr7tVtvuJNZmlJNm5E-2hO6VJ5lKCOXbZ7/exec"; 
 
 // Ganti dengan nomor WA pacar (format internasional tanpa tanda + atau 0 depan)
 const GF_WA_NUMBER = "62895401035264"; 
