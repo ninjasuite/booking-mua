@@ -2,7 +2,7 @@
 // KONFIGURASI UTAMA
 // ==========================================
 // Ganti dengan URL Google Apps Script milik Anda (akhiran /exec)
-const API_URL = "https://script.google.com/macros/s/AKfycbyp3pLdEGZILTvsE2AQBVuuKlTR3w1Q_dzr7tVtvuJNZmlJNm5E-2hO6VJ5lKCOXbZ7/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbztxrQeDFxxF9sIjfpDJtKGP7r1UptloZ8OHvOjixVDyvln0BLE2XXFxAkX4Fw4IqU8/exec"; 
 
 // Ganti dengan nomor WhatsApp pacar Anda (format 62... tanpa tanda + atau 0)
 const GF_WA_NUMBER = "6281234567890"; 
