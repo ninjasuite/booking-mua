@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Studio Booking</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .admin-card {
+      background: #fff;
+      border: 1px solid #ffd6e0;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .badge-pending { background: #fff3bf; color: #f59f00; }
+    .badge-confirmed { background: #d3f9d8; color: #2b8a3e; }
+    .badge-cancelled { background: #ffe3e3; color: #e03131; }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .btn-approve { background-color: #2b8a3e; }
+    .btn-approve:hover { background-color: #237032; }
+    .btn-cancel { background-color: #e03131; }
+    .btn-cancel:hover { background-color: #c92a2a; }
+    .btn-wa { background-color: #25D366; color: white; text-align: center; text-decoration: none; padding: 10px; border-radius: 8px; font-weight: bold; display: block; margin-top: 8px; font-size: 13px; }
+    
+    #pinOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: #fdf2f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Overlay Login PIN Sederhana -->
+  <div id="pinOverlay">
+    <div class="container" style="text-align: center;">
+      <h2>🔒 Masukkan PIN Admin</h2>
+      <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Masukkan PIN untuk membuka dashboard</p>
+      <input type="password" id="pinInput" placeholder="Masukkan PIN" style="text-align: center; font-size: 18px; margin-bottom: 15px;">
+      <button onclick="checkPin()">Masuk Dashboard</button>
+    </div>
+  </div>
+
+  <!-- Main Admin Dashboard -->
+  <div class="container">
+    <header>
+      <h1>Dashboard Admin MUA ✨</h1>
+      <p>Kelola jadwal & konfirmasi pembayaran pelanggan</p>
+    </header>
+
+    <div class="form-group">
+      <label for="filterDate">Filter Berdasarkan Tanggal:</label>
+      <input type="date" id="filterDate">
+    </div>
+
+    <div id="bookingList">
+      <p style="text-align: center; color: #666;">Memuat data booking...</p>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "https://script.google.com/macros/s/AKfycbx.../exec"; // Ganti dengan URL Apps Script Anda
+    const ADMIN_PIN = "1234"; // Ganti PIN sesuai keinginan pacar Anda
+
+    const filterDate = document.getElementById("filterDate");
+    const bookingList = document.getElementById("bookingList");
+    let allBookingsData = [];
+
+    // Set filter default ke hari ini
+    filterDate.value = new Date().toISOString().split("T")[0];
+
+    function checkPin() {
+      const enteredPin = document.getElementById("pinInput").value;
+      if (enteredPin === ADMIN_PIN) {
+        document.getElementById("pinOverlay").style.display = "none";
+        loadBookings();
+      } else {
+        alert("PIN Salah!");
+      }
+    }
+
+    async function loadBookings() {
+      bookingList.innerHTML = "<p style='text-align:center;'>Mengambil data jadwal...</p>";
+      try {
+        const res = await fetch(`${API_URL}?action=getAdminBookings`);
+        const data = await res.json();
+        allBookingsData = data.bookings || [];
+        renderBookings();
+      } catch (err) {
+        bookingList.innerHTML = "<p style='text-align:center; color:red;'>Gagal memuat data.</p>";
+      }
+    }
+
+    function renderBookings() {
+      const selectedDate = filterDate.value;
+      const filtered = allBookingsData.filter(b => b.date === selectedDate);
+
+      if (filtered.length === 0) {
+        bookingList.innerHTML = `<p style='text-align:center; color:#888;'>Tidak ada booking pada tanggal ${selectedDate}</p>`;
+        return;
+      }
+
+      bookingList.innerHTML = "";
+      filtered.forEach(b => {
+        let statusBadge = `<span class="badge badge-pending">PENDING PEMBAYARAN</span>`;
+        if (b.status === "Confirmed") statusBadge = `<span class="badge badge-confirmed">DITERIMA / CONFIRMED</span>`;
+        if (b.status === "Cancelled") statusBadge = `<span class="badge badge-cancelled">DIBATALKAN</span>`;
+
+        const waPhone = b.clientPhone.replace(/^0/, "62");
+        const waLink = `https://wa.me/${waPhone}?text=Halo%20${encodeURIComponent(b.clientName)},%20mengenai%20booking%20makeup%20tanggal%20${b.date}...`;
+
+        const card = document.createElement("div");
+        card.className = "admin-card";
+        card.innerHTML = `
+          ${statusBadge}
+          <h3 style="color:#d6336c; margin-bottom:4px;">${b.timeSlot} WIB - ${b.serviceName}</h3>
+          <p><strong>Pelanggan:</strong> ${b.clientName} (${b.clientPhone})</p>
+          <p style="font-size:12px; color:#777;">ID: ${b.bookingId}</p>
+
+          <a href="${waLink}" target="_blank" class="btn-wa">💬 Chat WhatsApp Pelanggan</a>
+
+          <div class="btn-group">
+            ${b.status !== 'Confirmed' ? `<button class="btn-approve" onclick="updateStatus('${b.bookingId}', 'Confirmed')">🟢 Konfirmasi</button>` : ''}
+            ${b.status !== 'Cancelled' ? `<button class="btn-cancel" onclick="updateStatus('${b.bookingId}', 'Cancelled')">🔴 Batalkan</button>` : ''}
+          </div>
+        `;
+        bookingList.appendChild(card);
+      });
+    }
+
+    async function updateStatus(bookingId, newStatus) {
+      if (!confirm(`Ubah status booking ini menjadi ${newStatus}?`)) return;
+
+      try {
+        await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "updateStatus", bookingId: bookingId, newStatus: newStatus })
+        });
+        alert("Status berhasil diperbarui!");
+        loadBookings(); // Refresh data
+      } catch (err) {
+        alert("Gagal memperbarui status.");
+      }
+    }
+
+    filterDate.addEventListener("change", renderBookings);
+  </script>
+</body>
+</html>
